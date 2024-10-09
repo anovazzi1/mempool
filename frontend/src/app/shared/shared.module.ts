@@ -195,6 +195,7 @@ import {
 
 @NgModule({
   declarations: [
+    AiExplanationButtonComponent,
     ClipboardComponent,
     TimeComponent,
     QrcodeComponent,
