@@ -75,7 +75,7 @@ export class MasterPageComponent implements OnInit, OnDestroy {
 
     const isServicesPage = this.router.url.includes('/services/');
     this.menuOpen = isServicesPage && !this.isSmallScreen();
-    this.setDropdownVisibility();
+    this.setDropdownVisibility();  
   }
 
   setDropdownVisibility(): void {

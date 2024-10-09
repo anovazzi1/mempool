@@ -118,11 +118,12 @@ import { TwitterWidgetComponent } from '../components/twitter-widget/twitter-wid
 import { FaucetComponent } from '../components/faucet/faucet.component';
 import { TwitterLogin } from '../components/twitter-login/twitter-login.component';
 import { BitcoinInvoiceComponent } from '../components/bitcoin-invoice/bitcoin-invoice.component';
-
+import { AiExplanationButtonComponent } from '../components/ai-explanation-button/ai-explanation-button.component';
 import { OnlyVsizeDirective, OnlyWeightDirective } from './components/weight-directives/weight-directives';
 
 @NgModule({
   declarations: [
+    AiExplanationButtonComponent,
     ClipboardComponent,
     TimeComponent,
     QrcodeComponent,
@@ -261,6 +262,7 @@ import { OnlyVsizeDirective, OnlyWeightDirective } from './components/weight-dir
     AmountShortenerPipe,
   ],
   exports: [
+    AiExplanationButtonComponent,
     MenuComponent,
     RouterModule,
     ReactiveFormsModule,
