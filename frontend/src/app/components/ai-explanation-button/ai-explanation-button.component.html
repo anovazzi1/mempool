@@ -1,0 +1,15 @@
+<div class="ai-explanation-button">
+  <button (click)="getExplanation()" [disabled]="isLoading" class="explain-button" title="Explain with AI">
+    <span *ngIf="!isLoading">✨</span>
+    <span *ngIf="isLoading" class="loading-spinner"></span>
+  </button>
+  <div *ngIf="explanation || error" class="ai-explanation-container" [class.error]="error">
+    <div class="ai-explanation-content">
+      <h3>{{ error ? 'Error' : 'AI Explanation' }}</h3>
+      <div class="scrollable-content">
+        <p>{{ error || explanation }}</p>
+      </div>
+    </div>
+    <button class="close-button" (click)="closeExplanation()">×</button>
+  </div>
+</div>
