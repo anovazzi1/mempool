@@ -1,6 +1,8 @@
 <div *ngIf="showTitle && mode === 'difficulty'" class="main-title" i18n="dashboard.difficulty-adjustment">Difficulty Adjustment</div>
 <div *ngIf="showTitle && mode === 'halving'" class="main-title" i18n="dashboard.halving-countdown">Halving Countdown</div>
-<div class="card-wrapper">
+<div 
+id="capture-difficulty"
+ class="card-wrapper">
   <div class="card">
     <div class="widget-toggler">
       <a href="" (click)="setMode('difficulty')" class="toggler-option"
@@ -163,5 +165,5 @@
   [progress]="epochData"
 ></app-difficulty-tooltip>
 
-<app-ai-explanation-button [parentData]></app-ai-explanation-button>
+<app-ai-explanation-button [targetSelector]="'#' + 'capture-difficulty'"></app-ai-explanation-button>
  <!-- This is the closing div for the card-wrapper -->

@@ -46,7 +46,7 @@ export class DifficultyComponent implements OnInit {
   @Input() showHalving = false;
   @Input() showTitle = true;
 
-  @ViewChild('epochSvg') epochSvgElement: ElementRef<SVGElement>;
+  @ViewChild('epochSvg', { static: true }) epochSvgElement: ElementRef<SVGElement>;
 
   isLoadingWebSocket$: Observable<boolean>;
   difficultyEpoch$: Observable<EpochProgress>;

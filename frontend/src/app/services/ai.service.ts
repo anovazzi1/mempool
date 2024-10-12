@@ -21,7 +21,7 @@ export class AiService {
 
     // Create a prompt template
     this.promptTemplate = PromptTemplate.fromTemplate(
-      'You are an AI assistant explaining Bitcoin data. Given the following data: {data}, provide a concise explanation for a general audience.'
+      'You are an AI assistant explaining Bitcoin difficulty data. Given the following image data (base64 encoded): {imageData}, provide a concise explanation for a general audience.'
     );
 
     // Create the chain'
@@ -31,9 +31,9 @@ export class AiService {
     });
   }
 
-  async getExplanation(data: any): Promise<string> {
+  async getExplanation(imageData: string): Promise<string> {
     try {
-      const result = await this.chain.call({ data: JSON.stringify(data) });
+      const result = await this.chain.call({ imageData });
       return result.text;
     } catch (error) {
       console.error('Error getting AI explanation:', error);

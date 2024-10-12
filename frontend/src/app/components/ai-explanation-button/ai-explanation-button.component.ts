@@ -1,4 +1,4 @@
-import { Component, Input, ElementRef } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { AiService } from '../../services/ai.service';
 import { ImageCaptureService } from '../../services/image-capture.service';
 
@@ -8,7 +8,7 @@ import { ImageCaptureService } from '../../services/image-capture.service';
   styleUrls: ['./ai-explanation-button.component.scss']
 })
 export class AiExplanationButtonComponent {
-  @Input() targetElement: ElementRef<HTMLElement>;
+  @Input() targetSelector: string;
   explanation: string = '';
   isLoading: boolean = false;
   error: string | null = null;
@@ -23,12 +23,13 @@ export class AiExplanationButtonComponent {
     this.isLoading = true;
     this.error = null;
     try {
-      if (this.targetElement && this.targetElement.nativeElement) {
-        this.capturedImage = await this.imageCaptureService.captureElement(this.targetElement.nativeElement);
-        this.explanation = await this.aiService.getExplanation(this.capturedImage);
+      const targetElement = document.querySelector(this.targetSelector) as HTMLElement;
+      if (targetElement) {
+        this.capturedImage = await this.imageCaptureService.captureElement(targetElement);
         this.downloadImage();
+        this.explanation = await this.aiService.getExplanation(this.capturedImage);
       } else {
-        throw new Error('No target element provided for capture');
+        throw new Error('No target element found for capture');
       }
     } catch (error) {
       this.error = `Sorry, I couldn't generate an explanation at this time. Please try again later.`;
