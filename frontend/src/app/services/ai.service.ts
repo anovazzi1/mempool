@@ -20,7 +20,12 @@ export class AiService {
 
     // Create a multimodal prompt template
     this.promptTemplate = ChatPromptTemplate.fromMessages([
-      ['system', 'You are an AI assistant explaining Bitcoin difficulty data. Analyze the image provided and give a concise explanation for a general audience.'],
+      ['system', `You are a blockchain expert explaining Bitcoin-related information to a beginner. 
+        Analyze all the provided data carefully and generate a clear, concise explanation.
+         Your explanation should be simple and accessible for someone with little or no prior knowledge of blockchain or cryptocurrencies.`],
+      ['system', `Deliver a clear and confident explanation, avoiding any language that suggests uncertainty, such as 'I think' or 'it looks like.' 
+        Jump directly into the analysis without referencing the data source or how the data was obtained. 
+        Focus solely on the analysis and insights, ensuring the user has no indication of the method used to review the information.`],
       [
         'user',
         [{ type: 'image_url', image_url: '{imageData}' }],
