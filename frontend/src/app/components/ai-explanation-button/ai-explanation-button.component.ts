@@ -12,7 +12,6 @@ export class AiExplanationButtonComponent {
   explanation: string = '';
   isLoading: boolean = false;
   error: string | null = null;
-  capturedImage: string | null = null;
 
   constructor(
     private aiService: AiService,
@@ -25,9 +24,8 @@ export class AiExplanationButtonComponent {
     try {
       const targetElement = document.querySelector(this.targetSelector) as HTMLElement;
       if (targetElement) {
-        this.capturedImage = await this.imageCaptureService.captureElement(targetElement);
-        this.downloadImage();
-        this.explanation = await this.aiService.getExplanation(this.capturedImage);
+        const capturedImage = await this.imageCaptureService.captureElement(targetElement);
+        this.explanation = await this.aiService.getExplanation(capturedImage);
       } else {
         throw new Error('No target element found for capture');
       }
@@ -42,14 +40,5 @@ export class AiExplanationButtonComponent {
   closeExplanation(): void {
     this.explanation = '';
     this.error = null;
-  }
-
-  downloadImage(): void {
-    if (this.capturedImage) {
-      const link = document.createElement('a');
-      link.href = this.capturedImage;
-      link.download = 'component-snapshot.png';
-      link.click();
-    }
   }
 }

@@ -1,40 +1,38 @@
 import { Injectable } from '@angular/core';
-import { OpenAI } from '@langchain/openai';
-import { PromptTemplate } from '@langchain/core/prompts';
-import { LLMChain } from 'langchain/chains';
+import { ChatOpenAI } from '@langchain/openai';
+import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AiService {
-  private model: OpenAI;
-  private promptTemplate: PromptTemplate;
-  private chain: LLMChain;
+  private model: ChatOpenAI;
+  private promptTemplate: ChatPromptTemplate;
 
   constructor() {
-    // Initialize the OpenAI model
-    this.model = new OpenAI({
+    // Initialize the ChatOpenAI model
+    this.model = new ChatOpenAI({
       openAIApiKey: environment.OPENAI_API_KEY,
-      temperature: 0.7
+      modelName: 'gpt-4-vision-preview', // Make sure to use a model that supports image input
+      maxTokens: 300,
     });
 
-    // Create a prompt template
-    this.promptTemplate = PromptTemplate.fromTemplate(
-      'You are an AI assistant explaining Bitcoin difficulty data. Given the following image data (base64 encoded): {imageData}, provide a concise explanation for a general audience.'
-    );
-
-    // Create the chain'
-    this.chain = new LLMChain({
-      llm: this.model,
-      prompt: this.promptTemplate,
-    });
+    // Create a multimodal prompt template
+    this.promptTemplate = ChatPromptTemplate.fromMessages([
+      ['system', 'You are an AI assistant explaining Bitcoin difficulty data. Analyze the image provided and give a concise explanation for a general audience.'],
+      [
+        'user',
+        [{ type: 'image_url', image_url: '{imageData}' }],
+      ],
+    ]);
   }
 
   async getExplanation(imageData: string): Promise<string> {
     try {
-      const result = await this.chain.call({ imageData });
-      return result.text;
+      const chain = this.promptTemplate.pipe(this.model);
+      const response = await chain.invoke({ imageData });
+      return response.content.toString();
     } catch (error) {
       console.error('Error getting AI explanation:', error);
       throw error;
