@@ -15,7 +15,8 @@ export class AiService {
     this.model = new ChatOpenAI({
       openAIApiKey: environment.OPENAI_API_KEY,
       modelName: 'gpt-4-vision-preview', // Make sure to use a model that supports image input
-      maxTokens: 300,
+      maxTokens: 500,
+      temperature: 0.2,
     });
 
     // Create a multimodal prompt template
