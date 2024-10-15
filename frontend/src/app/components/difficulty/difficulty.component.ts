@@ -67,6 +67,8 @@ export class DifficultyComponent implements OnInit {
   tooltipPosition = { x: 0, y: 0 };
   hoverSection: DiffShape | void;
 
+  parsedData: string = '';
+
   constructor(
     public stateService: StateService,
     private cd: ChangeDetectorRef,
@@ -167,6 +169,23 @@ export class DifficultyComponent implements OnInit {
           timeAvg: da.timeAvg,
           adjustedTimeAvg: da.adjustedTimeAvg,
         };
+
+        // Generate JSON string for parsedData
+        this.parsedData = JSON.stringify({
+          difficultyChange: da.difficultyChange,
+          progressPercent: da.progressPercent,
+          minedBlocks: this.currentIndex,
+          remainingBlocks: da.remainingBlocks,
+          expectedBlocks: Math.floor(da.expectedBlocks),
+          nextRetargetHeight: da.nextRetargetHeight,
+          estimatedRetargetDate: da.estimatedRetargetDate,
+          previousRetarget: da.previousRetarget,
+          blocksUntilHalving,
+          timeUntilHalving,
+          timeAvg: da.timeAvg,
+          adjustedTimeAvg: da.adjustedTimeAvg,
+        }, null, 2);
+
         return data;
       })
     );

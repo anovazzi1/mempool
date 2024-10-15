@@ -9,6 +9,7 @@ import { ImageCaptureService } from '../../services/image-capture.service';
 })
 export class AiExplanationButtonComponent {
   @Input() targetSelector: string;
+  @Input() parsedData?: string;
   explanation: string = '';
   isLoading: boolean = false;
   error: string | null = null;
@@ -25,7 +26,8 @@ export class AiExplanationButtonComponent {
       const targetElement = document.querySelector(this.targetSelector) as HTMLElement;
       if (targetElement) {
         const capturedImage = await this.imageCaptureService.captureElement(targetElement);
-        this.explanation = await this.aiService.getExplanation(capturedImage);
+        const extraData = this.parsedData ? `analise the raw data used to generate the graphic as well:\n\n\`\`\`${this.parsedData}\`\`\`` : '';
+        this.explanation = await this.aiService.getExplanation(capturedImage, extraData);
       } else {
         throw new Error('No target element found for capture');
       }
