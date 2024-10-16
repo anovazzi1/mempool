@@ -19,6 +19,7 @@ export class FeesBoxComponent implements OnInit, OnDestroy {
   gradient = 'linear-gradient(to right, var(--skeleton-bg), var(--skeleton-bg))';
   noPriority = 'var(--skeleton-bg)';
   fees: Recommendedfees;
+  parsedData: string = '';
 
   constructor(
     private stateService: StateService,
@@ -38,6 +39,7 @@ export class FeesBoxComponent implements OnInit, OnDestroy {
         tap((fees) => {
           this.fees = fees;
           this.setFeeGradient();
+          this.updateParsedData();
         }
       )
     );
@@ -59,6 +61,16 @@ export class FeesBoxComponent implements OnInit, OnDestroy {
     this.noPriority = startColor;
 
     this.cd.markForCheck();
+  }
+
+  updateParsedData() {
+    this.parsedData = JSON.stringify({
+      economyFee: this.fees.economyFee,
+      hourFee: this.fees.hourFee,
+      halfHourFee: this.fees.halfHourFee,
+      fastestFee: this.fees.fastestFee,
+      minimumFee: this.fees.minimumFee,
+    }, null, 2);
   }
 
   ngOnDestroy(): void {
