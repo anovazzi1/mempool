@@ -1,15 +1,62 @@
 <div class="ai-explanation-button">
-  <button (click)="getExplanation()" [disabled]="isLoading" class="explain-button" title="Explain with AI">
+  <button
+    (click)="getExplanation()"
+    [disabled]="isLoading"
+    class="explain-button"
+    title="Chat with AI"
+  >
     <span *ngIf="!isLoading">✨</span>
     <span *ngIf="isLoading" class="loading-spinner"></span>
   </button>
-  <div *ngIf="explanation || error" class="ai-explanation-container" [class.error]="error">
-    <div class="ai-explanation-content">
-      <h3>{{ error ? 'Error' : 'AI Explanation' }}</h3>
-      <div class="scrollable-content">
-        <p>{{ error || explanation }}</p>
+
+  <div
+    *ngIf="messages.length > 0 || error"
+    class="chat-container"
+    [class.error]="error"
+  >
+    <div class="chat-header">
+      <h3>AI Chat</h3>
+      <button class="close-button" (click)="closeChat()">×</button>
+    </div>
+
+    <div class="messages-container" #messagesContainer>
+      <div
+        *ngFor="let message of messages"
+        class="message"
+        [class.user-message]="message.isUser"
+        [class.ai-message]="!message.isUser"
+      >
+        <div class="message-content">
+          <p>{{ message.content }}</p>
+          <span class="timestamp">{{
+            message.timestamp | date: "shortTime"
+          }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="isLoading" class="message ai-message">
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
       </div>
     </div>
-    <button class="close-button" (click)="closeExplanation()">×</button>
+
+    <div class="chat-input">
+      <input
+        type="text"
+        [(ngModel)]="userMessage"
+        (keyup.enter)="sendMessage()"
+        placeholder="Type your message..."
+        [disabled]="isLoading"
+      />
+      <button
+        (click)="sendMessage()"
+        [disabled]="isLoading || !userMessage.trim()"
+      >
+        Send
+      </button>
+    </div>
   </div>
 </div>
