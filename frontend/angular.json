@@ -171,7 +171,12 @@
               "src/robots.txt",
               "src/config.js",
               "src/customize.js",
-              "src/config.template.js"
+              "src/config.template.js",
+              {
+                "glob": "pdf.worker.js",
+                "input": "node_modules/pdfjs-dist/build",
+                "output": "/assets/"
+              }
             ],
             "styles": [
               "src/styles.scss",
