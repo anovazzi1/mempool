@@ -172,9 +172,10 @@
               "src/config.js",
               "src/customize.js",
               "src/config.template.js",
+
               {
-                "glob": "pdf.worker.js",
-                "input": "node_modules/pdfjs-dist/build",
+                "glob": "pdf.worker.mjs",
+                "input": "node_modules/pdfjs-dist/legacy/build",
                 "output": "/assets/"
               }
             ],
@@ -206,10 +207,7 @@
           },
           "configurations": {
             "production": {
-              "assets": [
-                "src/favicon.ico",
-                "src/robots.txt"
-              ],
+              "assets": ["src/favicon.ico", "src/robots.txt"],
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
@@ -347,9 +345,7 @@
           "options": {
             "browserTarget": "mempool:build:production",
             "serverTarget": "mempool:server:production",
-            "routes": [
-              "/"
-            ]
+            "routes": ["/"]
           },
           "configurations": {
             "production": {}

@@ -10,6 +10,11 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+interface AgentOptions {
+  useRAG: boolean;
+  useWeb: boolean;
+}
+
 @Component({
   selector: 'app-ai-explanation-button',
   templateUrl: './ai-explanation-button.component.html',
@@ -28,6 +33,11 @@ export class AiExplanationButtonComponent {
   error: string | null = null;
   userMessage: string = '';
   @ViewChild('messagesContainer') private messagesContainer: ElementRef;
+  agentOptions: AgentOptions = {
+    useRAG: false,
+    useWeb: false,
+  };
+  isVisible: boolean = false;
 
   constructor(
     private aiService: AiService,
@@ -49,6 +59,7 @@ export class AiExplanationButtonComponent {
           ? `analise the raw data used to generate the graphic as well:\n\n\`\`\`${this.parsedData}\`\`\``
           : '';
         const explanation = await this.aiService.getExplanation(
+          this.agentOptions,
           capturedImage,
           extraData
         );
@@ -73,7 +84,10 @@ export class AiExplanationButtonComponent {
 
     this.isLoading = true;
     try {
-      const response = await this.aiService.getChatResponse(userMessageContent);
+      const response = await this.aiService.getChatResponse(
+        userMessageContent,
+        this.agentOptions
+      );
       this.addMessage(response, false);
     } catch (error) {
       this.error = `Sorry, I couldn't process your message. Please try again.`;
@@ -100,8 +114,21 @@ export class AiExplanationButtonComponent {
     } catch (err) {}
   }
 
+  showChat(): void {
+    this.isVisible = true;
+  }
+
   closeChat(): void {
+    this.isVisible = false;
     this.messages = [];
     this.error = null;
+  }
+
+  updateAgentOptions(option: 'rag' | 'web', checked: boolean): void {
+    if (option === 'rag') {
+      this.agentOptions.useRAG = checked;
+    } else {
+      this.agentOptions.useWeb = checked;
+    }
   }
 }

@@ -64,6 +64,34 @@
     justify-content: space-between;
     align-items: center;
 
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .agent-options {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      font-size: 14px;
+      
+      .option-label {
+        display: flex;
+        margin-bottom: 0!important;
+        align-items: center;
+        gap: 5px;
+        color: black;
+        cursor: pointer;
+        
+        input[type="checkbox"] {
+          cursor: pointer;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+
     .close-button {
       padding: 4px 8px;
       background-color: #f1f1f1;
@@ -81,6 +109,26 @@
     h3 {
       margin: 0;
       font-size: 18px;
+    }
+
+    .explain-action-button {
+      width: 90px;
+      padding: 8px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+
+      &:hover {
+        background-color: #0056b3;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     }
   }
 

@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { SearchApi } from '@langchain/community/tools/searchapi';
 import * as pdfjsLib from 'pdfjs-dist';
 
 @Injectable({
@@ -15,10 +16,11 @@ export class AiService {
   private promptTemplate: ChatPromptTemplate;
   private chatHistory: { role: string; content: string }[] = [];
   private vectorStore: MemoryVectorStore | null = null;
+  private searchTool: SearchApi;
 
   constructor() {
     // Initialize PDF.js worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.mjs';
 
     // Initialize the ChatOpenAI model
     this.model = new ChatOpenAI({
@@ -26,6 +28,11 @@ export class AiService {
       modelName: 'gpt-4-vision-preview',
       maxTokens: 500,
       temperature: 0.5,
+    });
+
+    // Initialize SearchApi tool
+    this.searchTool = new SearchApi(environment.SEARCHAPI_API_KEY, {
+      engine: 'google',
     });
 
     // Initialize PDF processing
@@ -50,10 +57,7 @@ export class AiService {
         'system',
         `DO NOT SEPARATE YOUR ANALISES ON TWO PARTS, CREATE AN UNIQUE ANALISES BASED ON ALL THE DATA PROVIDED. DO NOT REFERENCE THE DATA DIRECTLY`,
       ],
-      [
-        'system',
-        `Additional context: {contextData}`,
-      ],
+      ['system', `Additional context: {contextData}`],
       [
         'user',
         [
@@ -67,7 +71,8 @@ export class AiService {
   private async initializePDFContext(): Promise<void> {
     try {
       // Load PDF from resources directory
-      const pdfPath = '/resources/OReilly.Mastering.Bitcoin.2nd.Edition.2017.6.pdf';
+      const pdfPath =
+        '/resources/OReilly.Mastering.Bitcoin.2nd.Edition.2017.6.pdf';
       const pdf = await pdfjsLib.getDocument(pdfPath).promise;
 
       let fullText = '';
@@ -76,7 +81,9 @@ export class AiService {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
         fullText += pageText + '\n';
       }
 
@@ -89,9 +96,9 @@ export class AiService {
       const splits = await textSplitter.splitText(fullText);
 
       // Create documents from splits
-      const docs = splits.map(split => ({
+      const docs = splits.map((split) => ({
         pageContent: split,
-        metadata: {}
+        metadata: {},
       }));
 
       // Create vector store
@@ -107,27 +114,52 @@ export class AiService {
   }
 
   private async getRelevantContext(query: string): Promise<string> {
-    if (!this.vectorStore){
+    if (!this.vectorStore) {
       return '';
     }
 
     const relevantDocs = await this.vectorStore.similaritySearch(query, 2);
-    return relevantDocs.map(doc => doc.pageContent).join('\n');
+    return relevantDocs.map((doc) => doc.pageContent).join('\n');
+  }
+
+  private async performWebSearch(query: string): Promise<string> {
+    try {
+      const searchResults = await this.searchTool.invoke(query);
+      return searchResults;
+    } catch (error) {
+      console.error('Error performing web search:', error);
+      return '';
+    }
   }
 
   async getExplanation(
+    options: { useRAG: boolean; useWeb: boolean },
     imageData: string,
     parsedData?: string
   ): Promise<string> {
     try {
       // Get relevant context from PDF
-      const contextData = await this.getRelevantContext(parsedData || '');
+      let context = '';
+
+      if (options.useWeb) {
+        const searchResults = await this.performWebSearch(parsedData || '');
+        if (searchResults) {
+          context += `Web Search Results:\n${searchResults}\n\n`;
+        }
+      }
+
+      if (options.useRAG) {
+        const ragResults = await this.getRelevantContext(parsedData || '');
+        if (ragResults) {
+          context += `RAG Results:\n${ragResults}\n\n`;
+        }
+      }
 
       const chain = this.promptTemplate.pipe(this.model);
       const response = await chain.invoke({
         imageData,
         parsedData: parsedData || '',
-        contextData,
+        contextData: context,
       });
 
       // Store the initial explanation in chat history
@@ -147,14 +179,28 @@ export class AiService {
     }
   }
 
-  async getChatResponse(userMessage: string): Promise<string> {
+  async getChatResponse(
+    userMessage: string,
+    options: { useRAG: boolean; useWeb: boolean }
+  ): Promise<string> {
     try {
-      // Get relevant context from PDF for the user's message
-      const contextData = await this.getRelevantContext(userMessage);
-
+      let context = '';
       // Add user message to history
       this.chatHistory.push({ role: 'user', content: userMessage });
 
+      if (options.useWeb) {
+        const searchResults = await this.performWebSearch(userMessage);
+        if (searchResults) {
+          context += `Web Search Results:\n${searchResults}\n\n`;
+        }
+      }
+
+      if (options.useRAG) {
+        const ragResults = await this.getRelevantContext(userMessage);
+        if (ragResults) {
+          context += `RAG Results:\n${ragResults}\n\n`;
+        }
+      }
       // Create a chat prompt from history, including context
       const chatPrompt = ChatPromptTemplate.fromMessages([
         [
@@ -164,7 +210,7 @@ export class AiService {
         ...this.chatHistory.map(
           (msg) => [msg.role, msg.content] as [string, string]
         ),
-        ['system', `Additional context: ${contextData}`],
+        ['system', `Additional context: ${context}`],
       ]);
 
       // Get response using the chat history

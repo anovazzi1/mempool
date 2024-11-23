@@ -1,6 +1,6 @@
 <div class="ai-explanation-button">
   <button
-    (click)="getExplanation()"
+    (click)="showChat()"
     [disabled]="isLoading"
     class="explain-button"
     title="Chat with AI"
@@ -9,13 +9,34 @@
     <span *ngIf="isLoading" class="loading-spinner"></span>
   </button>
 
-  <div
-    *ngIf="messages.length > 0 || error"
-    class="chat-container"
-    [class.error]="error"
-  >
+  <div *ngIf="isVisible" class="chat-container" [class.error]="error">
     <div class="chat-header">
-      <h3>AI Chat</h3>
+      <div class="agent-options">
+        <label class="option-label">
+          <input
+            type="checkbox"
+            [checked]="agentOptions.useRAG"
+            (change)="updateAgentOptions('rag', $event.target.checked)"
+          />
+          RAG
+        </label>
+        <label class="option-label">
+          <input
+            type="checkbox"
+            [checked]="agentOptions.useWeb"
+            (change)="updateAgentOptions('web', $event.target.checked)"
+          />
+          Web Search
+        </label>
+      </div>
+      <button
+        *ngIf="!messages.length"
+        (click)="getExplanation()"
+        [disabled]="isLoading"
+        class="explain-action-button"
+      >
+        Explain
+      </button>
       <button class="close-button" (click)="closeChat()">×</button>
     </div>
 
