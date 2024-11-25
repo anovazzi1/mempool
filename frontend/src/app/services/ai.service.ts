@@ -132,7 +132,7 @@ export class AiService {
     }
   }
 
-  private async generateQuestionsFromData(data: string): Promise<string[]> {
+  private async generateQuestionsFromData(data: string,parsedData?: string): Promise<string[]> {
     const questionPrompt = ChatPromptTemplate.fromMessages([
       [
         'system',
@@ -140,11 +140,12 @@ export class AiService {
         Given the following data, generate 2-3 specific questions that would help gather relevant context.
         Return only the questions, separated by newlines, without any additional text or numbering.`
       ],
-      ['user', data]
+      ['user', `{data}`],
+      ['user', `{parsedData}`]
     ]);
 
     const chain = questionPrompt.pipe(this.model);
-    const response = await chain.invoke({});
+    const response = await chain.invoke({data,parsedData});
     return response.content.toString().split('\n').filter(q => q.trim());
   }
 
@@ -158,7 +159,7 @@ export class AiService {
 
       if (parsedData) {
         // Generate questions from the parsed data
-        const questions = await this.generateQuestionsFromData(parsedData);
+        const questions = await this.generateQuestionsFromData(imageData,parsedData);
 
         if (options.useWeb) {
           // Perform web search for each question
@@ -201,8 +202,6 @@ export class AiService {
       return explanation;
     } catch (error) {
       console.error('Error getting AI explanation:', error);
-      console.log(imageData);
-      console.log(parsedData);
       throw error;
     }
   }
