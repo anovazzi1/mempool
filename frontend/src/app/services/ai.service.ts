@@ -31,7 +31,7 @@ export class AiService {
     });
 
     // Initialize SearchApi tool
-    this.searchTool = new SearchApi(environment.SEARCHAPI_API_KEY, {
+    this.searchTool = new SearchApi(environment.SEARCH_API_KEY, {
       engine: 'google',
     });
 
@@ -132,26 +132,52 @@ export class AiService {
     }
   }
 
+  private async generateQuestionsFromData(data: string): Promise<string[]> {
+    const questionPrompt = ChatPromptTemplate.fromMessages([
+      [
+        'system',
+        `You are an expert at breaking down information into key questions.
+        Given the following data, generate 2-3 specific questions that would help gather relevant context.
+        Return only the questions, separated by newlines, without any additional text or numbering.`
+      ],
+      ['user', data]
+    ]);
+
+    const chain = questionPrompt.pipe(this.model);
+    const response = await chain.invoke({});
+    return response.content.toString().split('\n').filter(q => q.trim());
+  }
+
   async getExplanation(
     options: { useRAG: boolean; useWeb: boolean },
     imageData: string,
     parsedData?: string
   ): Promise<string> {
     try {
-      // Get relevant context from PDF
-      let context = '';
+      var context = '';
 
-      if (options.useWeb) {
-        const searchResults = await this.performWebSearch(parsedData || '');
-        if (searchResults) {
-          context += `Web Search Results:\n${searchResults}\n\n`;
+      if (parsedData) {
+        // Generate questions from the parsed data
+        const questions = await this.generateQuestionsFromData(parsedData);
+
+        if (options.useWeb) {
+          // Perform web search for each question
+          const webSearchPromises = questions.map(q => this.performWebSearch(q));
+          const webResults = await Promise.all(webSearchPromises);
+          const relevantWebResults = webResults.filter(result => result).join('\n\n');
+          if (relevantWebResults) {
+            context += `Web Search Results:\n${relevantWebResults}\n\n`;
+          }
         }
-      }
 
-      if (options.useRAG) {
-        const ragResults = await this.getRelevantContext(parsedData || '');
-        if (ragResults) {
-          context += `RAG Results:\n${ragResults}\n\n`;
+        if (options.useRAG) {
+          // Perform RAG search for each question
+          const ragPromises = questions.map(q => this.getRelevantContext(q));
+          const ragResults = await Promise.all(ragPromises);
+          const relevantRagResults = ragResults.filter(result => result).join('\n\n');
+          if (relevantRagResults) {
+            context += `RAG Results:\n${relevantRagResults}\n\n`;
+          }
         }
       }
 
@@ -175,6 +201,8 @@ export class AiService {
       return explanation;
     } catch (error) {
       console.error('Error getting AI explanation:', error);
+      console.log(imageData);
+      console.log(parsedData);
       throw error;
     }
   }
@@ -188,19 +216,29 @@ export class AiService {
       // Add user message to history
       this.chatHistory.push({ role: 'user', content: userMessage });
 
+      // Generate questions from the user message
+      const questions = await this.generateQuestionsFromData(userMessage);
+
       if (options.useWeb) {
-        const searchResults = await this.performWebSearch(userMessage);
-        if (searchResults) {
-          context += `Web Search Results:\n${searchResults}\n\n`;
+        // Perform web search for each question
+        const webSearchPromises = questions.map(q => this.performWebSearch(q));
+        const webResults = await Promise.all(webSearchPromises);
+        const relevantWebResults = webResults.filter(result => result).join('\n\n');
+        if (relevantWebResults) {
+          context += `Web Search Results:\n${relevantWebResults}\n\n`;
         }
       }
 
       if (options.useRAG) {
-        const ragResults = await this.getRelevantContext(userMessage);
-        if (ragResults) {
-          context += `RAG Results:\n${ragResults}\n\n`;
+        // Perform RAG search for each question
+        const ragPromises = questions.map(q => this.getRelevantContext(q));
+        const ragResults = await Promise.all(ragPromises);
+        const relevantRagResults = ragResults.filter(result => result).join('\n\n');
+        if (relevantRagResults) {
+          context += `RAG Results:\n${relevantRagResults}\n\n`;
         }
       }
+
       // Create a chat prompt from history, including context
       const chatPrompt = ChatPromptTemplate.fromMessages([
         [
